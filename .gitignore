@@ -1,0 +1,4 @@
+*.DS_Store
+*.sh
+gre_Match/OUTPUT_MATCH/*
+GRE_Target/OUTPUT_TARGET/*
