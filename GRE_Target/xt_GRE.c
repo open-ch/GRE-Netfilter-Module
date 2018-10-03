@@ -53,6 +53,7 @@ static unsigned int gre_tg4(struct sk_buff *skb, const struct xt_action_param *p
 
 static unsigned int gre_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 {
+  // TODO: Might only need one tg() function for both IPv4 and IPv6 (see xt_gre.c match code)
   return XT_CONTINUE;
 }
 
@@ -62,8 +63,8 @@ static int gre_tg_check(const struct xt_tgchk_param *par)
   const __u8 operation = *(&gre_info->operation);
 
   if ( !(operation == IPT_GRE_SETFLAGS || operation == IPT_GRE_CLEARFLAGS)) {
-	pr_info("Operation is not valid!");
-	return -EINVAL;
+    pr_info("Operation is not valid!");
+	  return -EINVAL;
   }
 
   return 0;
@@ -73,7 +74,7 @@ static struct xt_target gre_tg_regs[] __read_mostly = {
 	{
     .name       = "GRE",
     .revision	  = 0,
-    .family     = NFPROTO_IPV4,
+    .family     = NFPROTO_IPV4, // TODO: PROTO UNSPEC TO MERGE BOTH IPV4 and IPV6 in ONE reg ???
     .proto		  = IPPROTO_GRE,
     .table	   	= "mangle",
     .target 		= gre_tg4,

@@ -26,7 +26,6 @@ static const struct xt_option_entry GRE_opts[] = {
 		.id = O_GRE_SETFLAGS,
 		.type = XTTYPE_STRING,
 		.excl = F_ANY,
-		//.flags = XTOPT_PUT //FIXME what is this flag for?
 	},
 	{
 		.name = "clear-gre-flags",
@@ -44,8 +43,6 @@ static void GRE_parse(struct xt_option_call *cb)
 	struct ipt_GRE_info *info = cb->data;
 
 	xtables_option_parse(cb);
-	
-	
 
 	switch (cb->entry->id) {
 		case O_GRE_SETFLAGS:
@@ -100,10 +97,10 @@ static void GRE_fcheck(struct xt_fcheck_call *cb)
 }
 
 
-static struct xtables_target gre_tg_reg = {
+static struct xtables_target gre_tg4_reg = {
   .name          = "GRE",
   .version       = XTABLES_VERSION,
-  .family        = NFPROTO_IPV4,
+  .family        = NFPROTO_IPV4, // TODO: NFPROTO that supports both IPV4 and IPV6 ???
   .size          = XT_ALIGN(sizeof(struct ipt_GRE_info)),
   .userspacesize = XT_ALIGN(sizeof(struct ipt_GRE_info)),
   .init          = GRE_init,
@@ -115,7 +112,23 @@ static struct xtables_target gre_tg_reg = {
   .x6_options    = GRE_opts,
 };
 
+// static struct xtables_target gre_tg6_reg = {
+//   .name          = "GRE",
+//   .version       = XTABLES_VERSION,
+//   .family        = NFPROTO_IPV6,
+//   .size          = XT_ALIGN(sizeof(struct ipt_GRE_info)),
+//   .userspacesize = XT_ALIGN(sizeof(struct ipt_GRE_info)),
+//   .init          = GRE_init,
+//   .help          = GRE_help,
+//   .print         = GRE_print,
+//   .save          = GRE_save,
+//   .x6_parse      = GRE_parse,
+//   .x6_fcheck     = GRE_fcheck,
+//   .x6_options    = GRE_opts,
+// };
+
 void _init(void)
 {
-	xtables_register_target(&gre_tg_reg);
+	xtables_register_target(&gre_tg4_reg);
+	// xtables_register_target(&gre_tg6_reg);
 }

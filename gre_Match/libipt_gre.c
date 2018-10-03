@@ -4,7 +4,7 @@
 #include <xtables.h>
 #include <linux/netfilter_ipv4/ipt_gre.h>
 
-
+// TODO: put that in a .h file?
 #define GRE_FLAGS_MIN     0
 #define GRE_FLAGS_MAX     31
 #define GRE_DEFAULT_MASK  31
@@ -66,7 +66,7 @@ static void gre_parse(struct xt_option_call *cb)
 			xtables_error(PARAMETER_PROBLEM, "Bad gre-flags value \"%s\"", cb->arg);
 		}
 	}
-	
+
 	else // Incorrect Format : It is a malformed option value like 0xA_23 instead of 0xA/23 for instance
 	{
 		xtables_error(PARAMETER_PROBLEM, "Malformed option \"%s\". Should be --gre-flags value[/mask]", cb->arg);
@@ -107,10 +107,10 @@ static void gre_fcheck(struct xt_fcheck_call *cb)
 }
 
 
-static struct xtables_match gre_mt_reg = {
+static struct xtables_match gre_mt4_reg = {
   .name          = "gre",
   .version       = XTABLES_VERSION,
-  .family        = NFPROTO_IPV4,
+  .family        = NFPROTO_IPV4, // TODO: Can be unspec? So that ip6tables can also call it? only ipv4 or ipv6
   .size          = XT_ALIGN(sizeof(struct ipt_gre_info)),
   .userspacesize = XT_ALIGN(sizeof(struct ipt_gre_info)),
   .init          = gre_init,
@@ -122,7 +122,23 @@ static struct xtables_match gre_mt_reg = {
   .x6_options    = gre_opts,
 };
 
+// static struct xtables_match gre_mt6_reg = {
+//   .name          = "gre",
+//   .version       = XTABLES_VERSION,
+//   .family        = NFPROTO_IPV6, // TODO: Can be unspec? So that ip6tables can also call it? only ipv4 or ipv6
+//   .size          = XT_ALIGN(sizeof(struct ipt_gre_info)),
+//   .userspacesize = XT_ALIGN(sizeof(struct ipt_gre_info)),
+//   .init          = gre_init,
+//   .help          = gre_help,
+//   .print         = gre_print,
+//   .save          = gre_save,
+//   .x6_parse      = gre_parse,
+//   .x6_fcheck     = gre_fcheck,
+//   .x6_options    = gre_opts,
+// };
+
 void _init(void)
 {
-	xtables_register_match(&gre_mt_reg);
+	xtables_register_match(&gre_mt4_reg);
+	// xtables_register_match(&gre_mt6_reg);
 }
