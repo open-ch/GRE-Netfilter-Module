@@ -1,7 +1,16 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <xtables.h>
 #include <linux/netfilter_ipv4/ipt_GRE.h>
+
+// TODO: put that in a .h file?
+#define GRE_FLAGS_MIN     0
+#define GRE_FLAGS_MAX     31
+#define GRE_DEFAULT_MASK  31
+
+// Helper function for input sanitization
+void valid_gre_params(const uint8_t val, const char* s);
 
 static void GRE_help(void)
 {
@@ -37,17 +46,49 @@ static const struct xt_option_entry GRE_opts[] = {
 };
 #undef s
 
+void valid_gre_params(const uint8_t val, const char* s)
+{
+        if ( (val < GRE_FLAGS_MIN) || (val > GRE_FLAGS_MAX) ) {
+		xtables_error(PARAMETER_PROBLEM, "Error: GRE %s should be in the range [%d-%d].", s, GRE_FLAGS_MIN, GRE_FLAGS_MAX);
+	}
+}
 
 static void GRE_parse(struct xt_option_call *cb)
 {
 	struct ipt_GRE_info *info = cb->data;
+	char *end;
 
 	xtables_option_parse(cb);
 
 	switch (cb->entry->id) {
+
 		case O_GRE_SETFLAGS:
 			info->operation = IPT_GRE_SETFLAGS;
+			info->gre_flags_value = strtoul(cb->arg, &end, 0); // returns 0 if malformed
+			valid_gre_params(info->gre_flags_value, "flags");
+
+			// Correct Format, with or without mask
+			if (end != cb->arg && (*end == '/' || *end == '\0'))
+			{
+				if (*end == '/') {
+					info->gre_flags_mask = strtoul(end+1, &end, 0);
+					valid_gre_params(info->gre_flags_mask, "mask");
+				} else {
+					info->gre_flags_mask = GRE_DEFAULT_MASK; // = 0b11111 --> set ALL the GRE flags bits
+				}
+
+				if (*end != '\0' || end == cb->arg) {
+					xtables_error(PARAMETER_PROBLEM, "Bad gre-flags value \"%s\"", cb->arg);
+				}
+			}
+
+			else // Incorrect Format : It is a malformed option value like 0xA_23 instead of 0xA/23 for instance
+			{
+				xtables_error(PARAMETER_PROBLEM, "Malformed option \"%s\". Should be --set-gre-flags value[/mask]", cb->arg);
+			}
+
 			break;
+
 		case O_GRE_CLEARFLAGS:
 			info->operation = IPT_GRE_CLEARFLAGS;
 			break;

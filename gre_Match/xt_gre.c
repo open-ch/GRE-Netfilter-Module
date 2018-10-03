@@ -18,7 +18,7 @@ MODULE_ALIAS("ipt_gre");
 MODULE_ALIAS("ip6t_gre");
 
 // Independant of protocol ipv4 or ipv6
-get_gre_offset(const struct sk_buff *skb, struct xt_action_param *par)
+int get_gre_offset(const struct sk_buff *skb, struct xt_action_param *par)
 {
   const struct ipv6hdr *ipv6h = ipv6_hdr(skb);
   u_int8_t ipv6_nexthdr = ipv6h->nexthdr;
@@ -35,6 +35,11 @@ get_gre_offset(const struct sk_buff *skb, struct xt_action_param *par)
     case NFPROTO_IPV6:
       // The length of the ipv6 header + all the extensions headers
       gre_off = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &ipv6_nexthdr, &frag_off); // defined in <net/ipv6.h> ; <net/ipv6/exthdrs_core.c>
+      break;
+
+    default:
+      pr_info("Error, support only IPv4 or IPv6 packets");
+      return NF_DROP;
       break;
 
   }
@@ -96,7 +101,7 @@ static int __init gre_mt_init(void)
 
 static void __exit gre_mt_exit(void)
 {
-	xt_unregister_match(gre_mt_regs, ARRAY_SIZE(gre_mt_regs));
+	xt_unregister_matches(gre_mt_regs, ARRAY_SIZE(gre_mt_regs));
 }
 
 module_init(gre_mt_init);

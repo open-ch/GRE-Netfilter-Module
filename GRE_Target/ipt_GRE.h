@@ -6,8 +6,9 @@
 #define IPT_GRE_CLEARFLAGS	 0x02  /* Clear the GRE Flags in Header */
 
 struct ipt_GRE_info {
-	__u8 operation;  /* bitset of operations to do */
-	__u8 gre_flags;  /* actual flags to be set */
+	__u8 operation; 			 /* bitset of operations to do */
+	__u8 gre_flags_value;  /* actual flags to be set */
+	__u8 gre_flags_mask;   /* mask for GRE flags value */
 };
 
 #endif /*_IPT_GRE_H*/

@@ -8,7 +8,7 @@
 
 #include <linux/netfilter/x_tables.h>
 #include <linux/netfilter_ipv4/ipt_GRE.h>
-#include <linux/netfilter_ipv6/ip6t_GRE.h>
+//#include <linux/netfilter_ipv6/ip6t_GRE.h>
 
 
 MODULE_AUTHOR("Alexandre D. Connat <alc@open.com>");
@@ -22,14 +22,13 @@ static unsigned int gre_tg4(struct sk_buff *skb, const struct xt_action_param *p
 {
   const struct ipt_GRE_info *gre_info = par->targinfo;
   const __u8 operation = *(&gre_info->operation);
-  const __u8 gre_flags = *(&gre_info->gre_flags);
+  const __u8 gre_flags = *(&gre_info->gre_flags_value);
+  const __u8 gre_mask = *(&gre_info->gre_flags_mask);
 
   const __u8 iphlen = ip_hdrlen(skb);
 
   __u8 old_flags;
   __u8 new_flags;
-
-  __u8 mask = 31;
 
   if (!skb_make_writable(skb, sizeof(struct iphdr))) {
   	return NF_DROP;
@@ -39,7 +38,7 @@ static unsigned int gre_tg4(struct sk_buff *skb, const struct xt_action_param *p
 
   if (operation == IPT_GRE_SETFLAGS) {
 	old_flags = (skb->data[iphlen+1] & 0xF8) >> 3; // get the 5 bits of existing gre_flags (most probably 00000)
-	new_flags = (~mask & old_flags) | (mask & gre_flags); // Apply mask
+	new_flags = (~gre_mask & old_flags) | (gre_mask & gre_flags); // Apply mask
 	skb->data[iphlen+1] &= 0x07;  // Clear the most 5 most significant bits of this 2nd GRE Header byte (00000xxx)
 	skb->data[iphlen+1] |= (new_flags << 3);  // Set the GRE flags at the right position, leaving untouched the 3 less significant bits (GRE Version)
  } else if (operation == IPT_GRE_CLEARFLAGS) {
@@ -89,7 +88,7 @@ static struct xt_target gre_tg_regs[] __read_mostly = {
     .proto      = IPPROTO_GRE,
     .table      = "mangle",
     .target	  	= gre_tg6,
-    .targetsize	= sizeof(struct ip6t_GRE_info),
+    .targetsize	= sizeof(struct ipt_GRE_info),
     .checkentry	= gre_tg_check,
     .me	      	= THIS_MODULE,
 	},
